@@ -207,7 +207,7 @@ class _ConfigPanelState extends State<ConfigPanel> {
                       children: [
                         Expanded(
                           child: Text(
-                            config.customOutputDir ?? '默认输出至应用私有文档目录 (自动添加 _compressed 后缀)',
+                            config.customOutputDir ?? '默认输出至原文件同级目录 (自动添加时间戳防覆盖)',
                             style: TextStyle(
                               fontSize: 12,
                               color: config.customOutputDir != null

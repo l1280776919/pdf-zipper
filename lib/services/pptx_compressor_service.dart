@@ -68,14 +68,21 @@ class _WorkerParams {
 }
 
 class PptxCompressorService {
-  /// 计算输出文件路径：默认按选择文件的原始路径保存，仅修改文件名（添加后缀）
+  /// 计算输出文件路径：默认按选择文件的原始路径保存，添加时间戳避免不同压缩级别文件被相互覆盖
   static Future<String> getOutputFilePath(String inputPath, CompressionConfig config) async {
     final ext = p.extension(inputPath);
     final baseName = p.basenameWithoutExtension(inputPath);
-    final outFileName = '$baseName${config.outputSuffix}$ext';
+    final now = DateTime.now();
+    final timeStr = '${now.year.toString().padLeft(4, '0')}'
+        '${now.month.toString().padLeft(2, '0')}'
+        '${now.day.toString().padLeft(2, '0')}_'
+        '${now.hour.toString().padLeft(2, '0')}'
+        '${now.minute.toString().padLeft(2, '0')}'
+        '${now.second.toString().padLeft(2, '0')}';
+    final outFileName = '$baseName${config.outputSuffix}_$timeStr$ext';
 
     if (config.customOutputDir != null && config.customOutputDir!.isNotEmpty) {
-      return p.join(config.customOutputDir!, outFileName);
+      return _ensureUniquePath(config.customOutputDir!, outFileName);
     }
 
     final originalDir = p.dirname(inputPath);
@@ -102,7 +109,7 @@ class PptxCompressorService {
     }
 
     if (isOriginalDirWritable) {
-      return p.join(originalDir, outFileName);
+      return _ensureUniquePath(originalDir, outFileName);
     }
 
     // 2. 安卓端公共 Download 目录测试是否具有写入权限
@@ -116,7 +123,7 @@ class PptxCompressorService {
           testFile.writeAsStringSync('test');
           if (testFile.existsSync()) {
             testFile.deleteSync();
-            return p.join(publicDownload, outFileName);
+            return _ensureUniquePath(publicDownload, outFileName);
           }
         }
       } catch (_) {}
@@ -128,7 +135,7 @@ class PptxCompressorService {
         final extDirs = await getExternalStorageDirectories(type: StorageDirectory.documents);
         if (extDirs != null && extDirs.isNotEmpty) {
           final extPath = extDirs.first.path;
-          return p.join(extPath, outFileName);
+          return _ensureUniquePath(extPath, outFileName);
         }
       } catch (_) {}
     }
@@ -136,10 +143,25 @@ class PptxCompressorService {
     // 4. 兜底至应用专属文档目录
     try {
       final docsDir = await getApplicationDocumentsDirectory();
-      return p.join(docsDir.path, outFileName);
+      return _ensureUniquePath(docsDir.path, outFileName);
     } catch (_) {}
 
-    return p.join(originalDir, outFileName);
+    return _ensureUniquePath(originalDir.isNotEmpty ? originalDir : '.', outFileName);
+  }
+
+  /// 确保生成的目标路径唯一，避免同名文件被意外覆盖
+  static String _ensureUniquePath(String dir, String fileName) {
+    final candidate = p.join(dir, fileName);
+    if (!File(candidate).existsSync()) {
+      return candidate;
+    }
+    final base = p.basenameWithoutExtension(fileName);
+    final ext = p.extension(fileName);
+    int counter = 1;
+    while (File(p.join(dir, '${base}_$counter$ext')).existsSync()) {
+      counter++;
+    }
+    return p.join(dir, '${base}_$counter$ext');
   }
 
   /// 检查文件类型
