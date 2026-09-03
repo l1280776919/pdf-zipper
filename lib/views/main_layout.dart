@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/media_scanner_service.dart';
 import 'compress_page/compress_page.dart';
 import 'history_page/history_page.dart';
 
@@ -20,6 +23,44 @@ class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
   final GlobalKey<HistoryPageState> _historyPageKey = GlobalKey<HistoryPageState>();
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndRequestPermissionOnStartup();
+    });
+  }
+
+  Future<void> _checkAndRequestPermissionOnStartup() async {
+    if (kIsWeb || !Platform.isAndroid) return;
+    final hasPerm = await MediaScannerService.hasStoragePermission();
+    if (!hasPerm && mounted) {
+      final shouldRequest = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: const Text('授予存储管理权限'),
+          content: const Text(
+            '为了将压缩后的 PPT 直接保存在原文件所在目录，并让系统文件管理与钉钉立刻识别，请在接下来的设置中开启“所有文件访问权限”。',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('暂不开启'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('去开启'),
+            ),
+          ],
+        ),
+      );
+      if (shouldRequest == true) {
+        await MediaScannerService.requestStoragePermission();
+      }
+    }
+  }
+
   void _onHistoryUpdated() {
     _historyPageKey.currentState?.loadHistory();
   }
@@ -28,7 +69,7 @@ class _MainLayoutState extends State<MainLayout> {
     showAboutDialog(
       context: context,
       applicationName: 'PPT 压缩',
-      applicationVersion: '1.0.0',
+      applicationVersion: '1.0.5',
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

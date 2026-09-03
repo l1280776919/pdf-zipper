@@ -1,4 +1,4 @@
-package com.example.ppt_zipper
+package com.lamtap.pdfzipper
 
 import android.content.Intent
 import android.media.MediaScannerConnection
@@ -15,7 +15,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.File
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.ppt_zipper/media_store"
+    private val CHANNEL = "com.lamtap.pdfzipper/media_store"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
