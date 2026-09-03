@@ -13,4 +13,23 @@ class MediaScannerService {
       await _channel.invokeMethod('scanFile', {'filePath': filePath});
     } catch (_) {}
   }
+
+  /// 检查是否拥有外部存储的写入权限（针对 Android 11+ 的所有文件管理权限或 Android 10 的写权限）
+  static Future<bool> hasStoragePermission() async {
+    if (kIsWeb || !Platform.isAndroid) return true;
+    try {
+      final bool? res = await _channel.invokeMethod('hasStoragePermission');
+      return res ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 引导申请外部存储写入权限（直接跳转至系统设置页）
+  static Future<void> requestStoragePermission() async {
+    if (kIsWeb || !Platform.isAndroid) return;
+    try {
+      await _channel.invokeMethod('requestStoragePermission');
+    } catch (_) {}
+  }
 }

@@ -76,27 +76,60 @@ class PptxCompressorService {
 
     final originalDir = p.dirname(inputPath);
 
-    // 如果原路径有效且非临时缓存，直接保存在原文件所在目录
+    // 1. 测试原文件所在目录是否实际具有写入权限
+    bool isOriginalDirWritable = false;
     if (originalDir.isNotEmpty &&
         !originalDir.contains('/cache/file_picker') &&
         !originalDir.contains('\\cache\\file_picker')) {
       try {
         final dir = Directory(originalDir);
         if (dir.existsSync()) {
-          return p.join(originalDir, outFileName);
+          final testPath = p.join(originalDir, '.tmp_test_write_${DateTime.now().millisecondsSinceEpoch}');
+          final testFile = File(testPath);
+          testFile.writeAsStringSync('test');
+          if (testFile.existsSync()) {
+            testFile.deleteSync();
+            isOriginalDirWritable = true;
+          }
+        }
+      } catch (_) {
+        isOriginalDirWritable = false;
+      }
+    }
+
+    if (isOriginalDirWritable) {
+      return p.join(originalDir, outFileName);
+    }
+
+    // 2. 安卓端公共 Download 目录测试是否具有写入权限
+    if (!kIsWeb && Platform.isAndroid) {
+      const publicDownload = '/storage/emulated/0/Download';
+      try {
+        final downloadDir = Directory(publicDownload);
+        if (downloadDir.existsSync()) {
+          final testPath = p.join(publicDownload, '.tmp_test_write_${DateTime.now().millisecondsSinceEpoch}');
+          final testFile = File(testPath);
+          testFile.writeAsStringSync('test');
+          if (testFile.existsSync()) {
+            testFile.deleteSync();
+            return p.join(publicDownload, outFileName);
+          }
         }
       } catch (_) {}
     }
 
-    // 安卓端若原文件来自临时缓存，优先保存至公共 Downloads 目录方便用户查看
+    // 3. 外部存储应用专用目录（在 Android 上完全免申请权限，且第三方软件可通过分享读取）
     if (!kIsWeb && Platform.isAndroid) {
-      const publicDownload = '/storage/emulated/0/Download';
-      if (Directory(publicDownload).existsSync()) {
-        return p.join(publicDownload, outFileName);
-      }
+      try {
+        final extDirs = await getExternalStorageDirectories(type: StorageDirectory.documents);
+        if (extDirs != null && extDirs.isNotEmpty) {
+          final extPath = extDirs.first.path;
+          return p.join(extPath, outFileName);
+        }
+      } catch (_) {}
     }
 
-    // 兜底至文档目录
+    // 4. 兜底至应用专属文档目录
     try {
       final docsDir = await getApplicationDocumentsDirectory();
       return p.join(docsDir.path, outFileName);
@@ -309,14 +342,28 @@ class PptxCompressorService {
         throw Exception('PPTX 打包失败，生成数据为空。');
       }
 
-      // 确保目标目录存在
-      final outDir = Directory(p.dirname(outputPath));
-      if (!outDir.existsSync()) {
-        outDir.createSync(recursive: true);
-      }
+      // 确保目标目录存在并尝试写入
+      File outFile = File(outputPath);
+      String actualOutputPath = outputPath;
 
-      final outFile = File(outputPath);
-      outFile.writeAsBytesSync(zipData);
+      try {
+        final outDir = Directory(p.dirname(actualOutputPath));
+        if (!outDir.existsSync()) {
+          outDir.createSync(recursive: true);
+        }
+        outFile.writeAsBytesSync(zipData);
+      } catch (e) {
+        // 若写入目标目录遭遇系统权限拒绝，自动降级写入系统临时安全目录，保证压缩顺利完成
+        try {
+          final tempDir = Directory.systemTemp;
+          final fallbackPath = p.join(tempDir.path, p.basename(outputPath));
+          outFile = File(fallbackPath);
+          outFile.writeAsBytesSync(zipData);
+          actualOutputPath = fallbackPath;
+        } catch (e2) {
+          throw Exception('保存压缩文件失败: $e');
+        }
+      }
 
       final finalSize = outFile.lengthSync();
 
@@ -335,7 +382,7 @@ class PptxCompressorService {
         PptxCompressionResult(
           success: true,
           sourcePath: inputPath,
-          outputPath: outputPath,
+          outputPath: actualOutputPath,
           originalSize: originalSize,
           compressedSize: finalSize,
           totalImages: totalImages,

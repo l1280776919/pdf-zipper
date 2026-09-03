@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import '../../models/compression_config.dart';
@@ -96,11 +97,43 @@ class _CompressPageState extends State<CompressPage> {
     });
   }
 
+  Future<void> _checkAndroidPermissionIfNeeded() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      final hasPerm = await MediaScannerService.hasStoragePermission();
+      if (!hasPerm && mounted) {
+        final shouldRequest = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('建议开启存储访问权限'),
+            content: const Text(
+              '为了将压缩后的 PPT 直接保存在原文件所在目录（如微信/下载/文档目录），并让系统文件管理与钉钉立刻识别，建议开启“所有文件访问权限”。\n\n若暂不开启，文件将保存至应用专属目录进行安全兜底。',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('暂不开启'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('去开启'),
+              ),
+            ],
+          ),
+        );
+        if (shouldRequest == true) {
+          await MediaScannerService.requestStoragePermission();
+        }
+      }
+    }
+  }
+
   Future<void> _processTask(CompressionTask task) async {
     if (task.status == TaskStatus.compressing ||
         task.status == TaskStatus.packaging) {
       return;
     }
+
+    await _checkAndroidPermissionIfNeeded();
 
     setState(() {
       task.status = TaskStatus.scanning;
@@ -211,6 +244,8 @@ class _CompressPageState extends State<CompressPage> {
       );
       return;
     }
+
+    await _checkAndroidPermissionIfNeeded();
 
     setState(() => _isProcessingBatch = true);
 
