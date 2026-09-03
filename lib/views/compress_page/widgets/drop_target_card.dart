@@ -82,12 +82,12 @@ class _DropTargetCardState extends State<DropTargetCard> {
               border: Border.all(
                 color: _isDragging
                     ? colorScheme.primary
-                    : (isDark ? colorScheme.outlineVariant : const Color(0xFF99F6E4).withOpacity(0.8)),
+                    : (isDark ? colorScheme.outlineVariant : const Color(0xFF99F6E4).withValues(alpha: 0.8)),
                 width: _isDragging ? 2.0 : 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0D9488).withOpacity(isDark ? 0.0 : 0.05),
+                  color: const Color(0xFF0D9488).withValues(alpha: isDark ? 0.0 : 0.05),
                   blurRadius: 20,
                   offset: const Offset(0, 6),
                 ),
@@ -104,7 +104,7 @@ class _DropTargetCardState extends State<DropTargetCard> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0D9488).withOpacity(0.16),
+                        color: const Color(0xFF0D9488).withValues(alpha: 0.16),
                         blurRadius: 18,
                         offset: const Offset(0, 6),
                       ),

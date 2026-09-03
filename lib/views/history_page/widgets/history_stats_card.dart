@@ -33,7 +33,7 @@ class HistoryStatsCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.0 : 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.0 : 0.02),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -44,7 +44,7 @@ class HistoryStatsCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isDark ? accentColor.withOpacity(0.15) : iconBgColor,
+              color: isDark ? accentColor.withValues(alpha: 0.15) : iconBgColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: accentColor, size: 22),

@@ -54,7 +54,7 @@ class _ConfigPanelState extends State<ConfigPanel> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.0 : 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.0 : 0.03),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -70,7 +70,7 @@ class _ConfigPanelState extends State<ConfigPanel> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0D9488).withOpacity(0.1),
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(

@@ -54,7 +54,7 @@ class TaskItemTile extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.0 : 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.0 : 0.02),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -80,7 +80,7 @@ class TaskItemTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF6B4A).withOpacity(0.25),
+                        color: const Color(0xFFFF6B4A).withValues(alpha: 0.25),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -124,7 +124,7 @@ class TaskItemTile extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
