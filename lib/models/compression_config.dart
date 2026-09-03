@@ -47,6 +47,7 @@ class CompressionConfig {
   int? maxDimension; // e.g. 1920, or null
   bool keepIfLarger; // 仅当压缩后尺寸更小时替换，安全兜底
   bool preserveAlpha; // 严格保留透明通道（强制为true）
+  bool removeVideos; // 移除嵌入视频，直接清除大体积视频以极致瘦身（默认开启）
   String? customOutputDir; // 自定义输出目录，若为空则在源文件同级目录输出
   String outputSuffix; // 压缩文件后缀，默认为 "_compressed"
 
@@ -57,6 +58,7 @@ class CompressionConfig {
     int? maxDimension,
     this.keepIfLarger = true,
     this.preserveAlpha = true,
+    this.removeVideos = true,
     this.customOutputDir,
     this.outputSuffix = '_compressed',
   })  : jpgQuality = jpgQuality ?? preset.defaultJpgQuality,
@@ -79,6 +81,7 @@ class CompressionConfig {
     int? maxDimension,
     bool? keepIfLarger,
     bool? preserveAlpha,
+    bool? removeVideos,
     String? customOutputDir,
     String? outputSuffix,
   }) {
@@ -89,6 +92,7 @@ class CompressionConfig {
       maxDimension: maxDimension ?? this.maxDimension,
       keepIfLarger: keepIfLarger ?? this.keepIfLarger,
       preserveAlpha: preserveAlpha ?? this.preserveAlpha,
+      removeVideos: removeVideos ?? this.removeVideos,
       customOutputDir: customOutputDir ?? this.customOutputDir,
       outputSuffix: outputSuffix ?? this.outputSuffix,
     );

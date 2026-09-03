@@ -389,7 +389,9 @@ class HistoryPageState extends State<HistoryPage> {
                                             borderRadius: BorderRadius.circular(6),
                                           ),
                                           child: Text(
-                                            '优化 ${record.reducedImages}/${record.totalImages} 图 · ${record.durationSeconds.toStringAsFixed(1)}s',
+                                            record.removedVideos > 0
+                                                ? '优化 ${record.reducedImages}/${record.totalImages} 图 · 移除 ${record.removedVideos} 视频 · ${record.durationSeconds.toStringAsFixed(1)}s'
+                                                : '优化 ${record.reducedImages}/${record.totalImages} 图 · ${record.durationSeconds.toStringAsFixed(1)}s',
                                             style: TextStyle(
                                               color: isDark ? colorScheme.onSurfaceVariant : const Color(0xFF64748B),
                                               fontSize: 11,

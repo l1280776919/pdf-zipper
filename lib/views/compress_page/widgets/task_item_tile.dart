@@ -269,7 +269,9 @@ class TaskItemTile extends StatelessWidget {
                             ),
                           ),
                         Text(
-                          '优化 ${task.imagesReducedCount}/${task.totalImages} 图',
+                          task.removedVideos > 0
+                              ? '优化 ${task.imagesReducedCount}/${task.totalImages} 图 · 移除 ${task.removedVideos} 视频'
+                              : '优化 ${task.imagesReducedCount}/${task.totalImages} 图',
                           style: const TextStyle(
                             color: Color(0xFF64748B),
                             fontSize: 11,

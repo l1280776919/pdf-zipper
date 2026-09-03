@@ -11,6 +11,7 @@ class HistoryRecord {
   final double savingsRatio;
   final int totalImages;
   final int reducedImages;
+  final int removedVideos;
   final DateTime timestamp;
   final double durationSeconds;
 
@@ -25,6 +26,7 @@ class HistoryRecord {
     required this.savingsRatio,
     required this.totalImages,
     required this.reducedImages,
+    this.removedVideos = 0,
     required this.timestamp,
     required this.durationSeconds,
   });
@@ -41,6 +43,7 @@ class HistoryRecord {
       'savingsRatio': savingsRatio,
       'totalImages': totalImages,
       'reducedImages': reducedImages,
+      'removedVideos': removedVideos,
       'timestamp': timestamp.toIso8601String(),
       'durationSeconds': durationSeconds,
     };
@@ -58,6 +61,7 @@ class HistoryRecord {
       savingsRatio: (map['savingsRatio'] as num?)?.toDouble() ?? 0.0,
       totalImages: map['totalImages'] as int? ?? 0,
       reducedImages: map['reducedImages'] as int? ?? 0,
+      removedVideos: map['removedVideos'] as int? ?? 0,
       timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
       durationSeconds: (map['durationSeconds'] as num?)?.toDouble() ?? 0.0,
     );

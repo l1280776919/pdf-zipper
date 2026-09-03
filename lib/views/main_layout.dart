@@ -69,7 +69,7 @@ class _MainLayoutState extends State<MainLayout> {
     showAboutDialog(
       context: context,
       applicationName: 'PPT 压缩',
-      applicationVersion: '1.0.5',
+      applicationVersion: '1.0.6',
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

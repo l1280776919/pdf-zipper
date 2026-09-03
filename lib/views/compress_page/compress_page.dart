@@ -166,6 +166,7 @@ class _CompressPageState extends State<CompressPage> {
           task.totalImages = update.totalImages;
           task.currentImageIndex = update.currentImageIndex;
           task.imagesReducedCount = update.imagesReducedCount;
+          task.removedVideos = update.removedVideos;
         });
       });
 
@@ -187,6 +188,7 @@ class _CompressPageState extends State<CompressPage> {
           task.finishTime = endTime;
           task.totalImages = result.totalImages;
           task.imagesReducedCount = result.reducedImages;
+          task.removedVideos = result.removedVideos;
         });
 
         // 写入本地历史记录
@@ -205,6 +207,7 @@ class _CompressPageState extends State<CompressPage> {
               : 0.0,
           totalImages: result.totalImages,
           reducedImages: result.reducedImages,
+          removedVideos: result.removedVideos,
           timestamp: endTime,
           durationSeconds: durationSec,
         );

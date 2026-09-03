@@ -17,6 +17,7 @@ class PptxCompressionResult {
   final int compressedSize;
   final int totalImages;
   final int reducedImages;
+  final int removedVideos;
   final String? error;
 
   PptxCompressionResult({
@@ -27,6 +28,7 @@ class PptxCompressionResult {
     required this.compressedSize,
     required this.totalImages,
     required this.reducedImages,
+    this.removedVideos = 0,
     this.error,
   });
 }
@@ -38,6 +40,7 @@ class PptxProgressUpdate {
   final int totalImages;
   final int currentImageIndex;
   final int imagesReducedCount;
+  final int removedVideos;
 
   PptxProgressUpdate({
     required this.status,
@@ -46,6 +49,7 @@ class PptxProgressUpdate {
     this.totalImages = 0,
     this.currentImageIndex = 0,
     this.imagesReducedCount = 0,
+    this.removedVideos = 0,
   });
 }
 
@@ -245,19 +249,41 @@ class PptxCompressorService {
 
       final archive = ZipDecoder().decodeBytes(originalBytes);
 
-      // 筛选 ppt/media/ 下的图片条目
+      // 筛选 ppt/media/ 下的图片条目与视频文件
       final allFiles = archive.files;
       final imageEntries = <ArchiveFile>[];
+      final videoEntries = <ArchiveFile>[];
+
+      const videoExtensions = {
+        '.mp4', '.avi', '.mov', '.wmv', '.m4v',
+        '.mkv', '.webm', '.flv', '.mpeg', '.mpg',
+        '.3gp', '.rmvb', '.asf', '.ts'
+      };
 
       for (final file in allFiles) {
         if (!file.isFile) continue;
         final name = file.name.toLowerCase();
+        final ext = p.extension(name);
+
         if (name.contains('ppt/media/') || name.contains('media/')) {
           if (name.endsWith('.png') ||
               name.endsWith('.jpg') ||
               name.endsWith('.jpeg')) {
             imageEntries.add(file);
+          } else if (videoExtensions.contains(ext)) {
+            videoEntries.add(file);
           }
+        }
+      }
+
+      int removedVideos = 0;
+      final videoMap = <String, ArchiveFile>{};
+
+      // 如果开启了“移除嵌入视频”逻辑，直接清除视频内容（替换为 0 字节文件，保持关系树完整无损）
+      if (config.removeVideos && videoEntries.isNotEmpty) {
+        for (final vFile in videoEntries) {
+          removedVideos++;
+          videoMap[vFile.name] = ArchiveFile(vFile.name, 0, <int>[]);
         }
       }
 
@@ -268,13 +294,16 @@ class PptxCompressorService {
         PptxProgressUpdate(
           status: TaskStatus.scanning,
           progress: 0.15,
-          message: '共扫描到 $totalImages 张可优化图片，准备压缩...',
+          message: removedVideos > 0
+              ? '发现 $totalImages 张图片，直接移除 $removedVideos 个高耗视频...'
+              : '共扫描到 $totalImages 张可优化图片，准备压缩...',
           totalImages: totalImages,
           currentImageIndex: 0,
+          removedVideos: removedVideos,
         ),
       );
 
-      // 新建 Archive，将非图片文件直接保留，图片文件视优化结果替换
+      // 新建 Archive，将非图片/非视频文件直接保留，图片视优化结果替换，视频视设置清空
       final newArchive = Archive();
       final imageMap = {for (var img in imageEntries) img.name: img};
 
@@ -293,6 +322,7 @@ class PptxCompressorService {
             totalImages: totalImages,
             currentImageIndex: i + 1,
             imagesReducedCount: reducedImages,
+            removedVideos: removedVideos,
           ),
         );
 
@@ -324,6 +354,7 @@ class PptxCompressorService {
           totalImages: totalImages,
           currentImageIndex: totalImages,
           imagesReducedCount: reducedImages,
+          removedVideos: removedVideos,
         ),
       );
 
@@ -331,6 +362,8 @@ class PptxCompressorService {
       for (final file in allFiles) {
         if (imageMap.containsKey(file.name)) {
           newArchive.addFile(imageMap[file.name]!);
+        } else if (videoMap.containsKey(file.name)) {
+          newArchive.addFile(videoMap[file.name]!);
         } else {
           newArchive.addFile(file);
         }
@@ -375,6 +408,7 @@ class PptxCompressorService {
           totalImages: totalImages,
           currentImageIndex: totalImages,
           imagesReducedCount: reducedImages,
+          removedVideos: removedVideos,
         ),
       );
 
@@ -387,6 +421,7 @@ class PptxCompressorService {
           compressedSize: finalSize,
           totalImages: totalImages,
           reducedImages: reducedImages,
+          removedVideos: removedVideos,
         ),
       );
     } catch (e, stack) {

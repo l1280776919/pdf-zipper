@@ -23,6 +23,7 @@ class CompressionTask {
   int totalImages;
   int currentImageIndex;
   int imagesReducedCount; // 体积减小的图片数量
+  int removedVideos; // 移除的视频数量
   
   int? compressedSizeBytes;
   String? outputPath;
@@ -41,6 +42,7 @@ class CompressionTask {
     this.totalImages = 0,
     this.currentImageIndex = 0,
     this.imagesReducedCount = 0,
+    this.removedVideos = 0,
     this.compressedSizeBytes,
     this.outputPath,
     this.errorMessage,

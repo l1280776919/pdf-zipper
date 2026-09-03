@@ -261,6 +261,63 @@ class _ConfigPanelState extends State<ConfigPanel> {
               },
             ),
 
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? colorScheme.surfaceContainerHighest
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark
+                      ? colorScheme.outlineVariant
+                      : const Color(0xFFE2E8F0),
+                  width: 1,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.videocam_off_outlined,
+                      size: 20, color: Color(0xFFE11D48)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '直接移除嵌入视频',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '直接清空嵌入的高耗存储视频文件（保持幻灯片排版完整），彻底解决大文件问题',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark
+                                ? colorScheme.onSurfaceVariant
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch.adaptive(
+                    value: config.removeVideos,
+                    activeTrackColor: const Color(0xFF0D9488),
+                    onChanged: (val) {
+                      setState(() {
+                        config.removeVideos = val;
+                        widget.onConfigChanged(config);
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+
             // 自定义滑块
             if (config.preset == CompressionPreset.custom) ...[
               const SizedBox(height: 16),
