@@ -6,6 +6,7 @@ import '../../models/compression_config.dart';
 import '../../models/compression_task.dart';
 import '../../models/history_record.dart';
 import '../../services/history_storage_service.dart';
+import '../../services/media_scanner_service.dart';
 import '../../services/pptx_compressor_service.dart';
 import 'widgets/config_panel.dart';
 import 'widgets/drop_target_card.dart';
@@ -177,6 +178,9 @@ class _CompressPageState extends State<CompressPage> {
 
         await HistoryStorageService.addRecord(historyRecord);
         widget.onHistoryUpdated();
+
+        // 广播通知系统媒体库与最近文件数据库，让手机文件管理最近列表与微信/钉钉立刻可见
+        await MediaScannerService.notifySystemScan(result.outputPath);
       } else {
         setState(() {
           task.status = TaskStatus.failed;
